@@ -1,0 +1,51 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.37.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           LogicServer
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/LogicServer#readme>
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+library
+  exposed-modules:
+      Lib
+      Sequent
+  other-modules:
+      Paths_LogicServer
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+executable LogicServer-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_LogicServer
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      LogicServer
+    , base >=4.7 && <5
+  default-language: Haskell2010
+
+test-suite LogicServer-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_LogicServer
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      LogicServer
+    , base >=4.7 && <5
+  default-language: Haskell2010
