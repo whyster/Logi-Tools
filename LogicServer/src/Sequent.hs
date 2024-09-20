@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
-module Sequent (Expr(..), LogicTree(..), Sequent, simplifyTree, solve) where
+module Sequent (Expr(..), LogicTree(..), Sequent, simplifyTree, solve, bic) where
+import Test.QuickCheck
 
 data Expr = Atom String
           | Not Expr
@@ -15,6 +16,31 @@ data LogicTree = Leaf Sequent
                | Axiom
                | Unsatisfiable
                deriving (Eq, Show)
+
+bic :: Expr -> Expr -> Expr
+bic a b = And (If a b) (If b a)
+
+instance Arbitrary Expr where
+  arbitrary = sized exprs
+
+instance CoArbitrary Expr where
+  coarbitrary (Atom s) = variant 0 . coarbitrary s
+  coarbitrary (Not e) = variant 1 . coarbitrary e
+  coarbitrary (And e2 e) = variant 2 . coarbitrary e2 . coarbitrary e
+  coarbitrary (Or e2 e) = variant 3 . coarbitrary e2 . coarbitrary e
+  coarbitrary (If e2 e) = variant 4 . coarbitrary e2 . coarbitrary e
+
+
+
+exprs :: Int -> Gen Expr
+exprs n
+    | n <= 0 = fmap Atom arbitrary
+    | otherwise = oneof [ Not <$> subExpr
+                        , And <$> subExpr <*> subExpr
+                        , Or <$> subExpr <*> subExpr
+                        , If <$> subExpr <*> subExpr
+                        ]
+  where subExpr = exprs $ n `div` 2
 
 
 simplifySequent :: Sequent -> LogicTree
