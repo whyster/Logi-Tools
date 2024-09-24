@@ -24,11 +24,11 @@ instance Arbitrary Expr where
   arbitrary = sized exprs
 
 instance CoArbitrary Expr where
-  coarbitrary (Atom s) = variant 0 . coarbitrary s
-  coarbitrary (Not e) = variant 1 . coarbitrary e
+  coarbitrary (Atom s)   = variant 0 . coarbitrary s
+  coarbitrary (Not e)    = variant 1 . coarbitrary e
   coarbitrary (And e2 e) = variant 2 . coarbitrary e2 . coarbitrary e
-  coarbitrary (Or e2 e) = variant 3 . coarbitrary e2 . coarbitrary e
-  coarbitrary (If e2 e) = variant 4 . coarbitrary e2 . coarbitrary e
+  coarbitrary (Or e2 e)  = variant 3 . coarbitrary e2 . coarbitrary e
+  coarbitrary (If e2 e)  = variant 4 . coarbitrary e2 . coarbitrary e
 
 
 
