@@ -19,6 +19,10 @@ dependencies:
 - QuickCheck
 - hspec
 - servant
+- servant-server
+- warp
+- wai-extra
+- bytestring
 - aeson
 
 ghc-options:
