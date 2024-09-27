@@ -22,7 +22,7 @@ Logi-Tools will expose an API that allows programmatic use of most of the tools 
 = Milestones
 === September Milestones
 - A haskell implementation of a propositional calculus reducer
-- A GRPC Server to expose interaction with the propositional reducer
+- A server to expose interaction with the propositional reducer
 === October Milestones
 - A haskell implementation of a first order logic reducer
 - A visual interface for interacting with the reducer
