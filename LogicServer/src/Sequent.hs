@@ -1,13 +1,19 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Sequent (Expr(..), LogicTree(..), Sequent, simplifyTree, solve, bic) where
 import Test.QuickCheck
+import GHC.Generics
+import Data.Aeson
 
 data Expr = Atom String
           | Not Expr
           | And Expr Expr
           | Or Expr Expr
           | If Expr Expr
-          deriving (Eq, Show)
+          deriving (Eq, Show, Generic)
+
+instance ToJSON Expr
+instance FromJSON Expr
 
 type Sequent = ([Expr], [Expr])
 
