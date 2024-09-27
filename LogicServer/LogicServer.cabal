@@ -23,8 +23,10 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       QuickCheck
+    , aeson
     , base >=4.7 && <5
     , hspec
+    , servant
   default-language: Haskell2010
 
 executable LogicServer-exe
@@ -37,8 +39,10 @@ executable LogicServer-exe
   build-depends:
       LogicServer
     , QuickCheck
+    , aeson
     , base >=4.7 && <5
     , hspec
+    , servant
   default-language: Haskell2010
 
 test-suite LogicServer-test
@@ -52,6 +56,8 @@ test-suite LogicServer-test
   build-depends:
       LogicServer
     , QuickCheck
+    , aeson
     , base >=4.7 && <5
     , hspec
+    , servant
   default-language: Haskell2010
