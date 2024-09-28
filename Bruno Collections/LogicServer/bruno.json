@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "LogicServer",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

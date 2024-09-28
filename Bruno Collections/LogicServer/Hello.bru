@@ -1,0 +1,19 @@
+meta {
+  name: Hello
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}/hello
+  body: text
+  auth: none
+}
+
+headers {
+  content-type: text/plain;charset=utf-8
+}
+
+body:text {
+  Harrison
+}
