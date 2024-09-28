@@ -1,19 +1,39 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveGeneric #-}
-module Sequent (Expr(..), LogicTree(..), Sequent, simplifyTree, solve, bic) where
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE InstanceSigs #-}
+module Sequent (Expr(..), LogicTree(..), Sequent, simplifyTree, solve, bic, explosionExpr) where
 import Test.QuickCheck
 import GHC.Generics
 import Data.Aeson
+import Data.Aeson.Types
+import Data.Aeson.KeyMap hiding (foldr)
 
 data Expr = Atom String
           | Not Expr
           | And Expr Expr
           | Or Expr Expr
           | If Expr Expr
-          deriving (Eq, Show, Generic)
+          deriving (Eq, Show)
 
-instance ToJSON Expr
-instance FromJSON Expr
+instance ToJSON Expr where
+  toJSON :: Expr -> Value
+  toJSON (Atom s)    = object [ "tag" .= String "atom", "value" .= s]
+  toJSON (Not e)     = object [ "tag" .= String "not", "value" .= toJSON e]
+  toJSON (And e1 e2) = object [ "tag" .= String "and", "value" .= toJSONList [e1, e2]]
+  toJSON (Or e1 e2)  = object [ "tag" .= String "or", "value" .= toJSONList [e1, e2]]
+  toJSON (If e1 e2)  = object [ "tag" .= String "if", "value" .= object ["antecedent" .= toJSON e1, "consequent" .= toJSON e2]]
+
+instance FromJSON Expr where
+  parseJSON :: Value -> Parser Expr
+  parseJSON = withObject "Coord" $ \v -> case v !? "tag" of
+      Just (String "atom") -> Atom <$> (v .: "value")
+      Just (String "not")  -> Not  <$> (v .: "value") 
+      Just (String "and")  -> (v .: "value") >>= (\(fst : snd : _) -> return (And fst snd))
+      Just (String "or")   -> (v .: "value") >>= (\(fst : snd : _) -> return (Or fst snd))
+      Just (String "if")   -> (v .: "value") >>= (\o -> If <$> (o .: "antecedent") <*> (o .: "consequent"))
+      _ -> fail "Unexpected tag value"
+
 
 type Sequent = ([Expr], [Expr])
 
@@ -107,3 +127,8 @@ solve tree = case until terminates simplifyTree tree of
   where terminates = \case Axiom -> True
                            Unsatisfiable -> True
                            _ -> False
+
+explosionExpr = If (And (Atom "phi") (Not $ Atom "phi")) (Atom "zeta")
+
+
+
