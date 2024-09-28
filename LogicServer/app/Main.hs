@@ -1,6 +1,7 @@
 module Main (main) where
-
-import Lib
+import Server(app)
+import Network.Wai.Handler.Warp
+import Network.Wai.Middleware.RequestLogger
 
 main :: IO ()
-main = someFunc
+main = run 8081 (logStdoutDev app)
