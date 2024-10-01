@@ -1,0 +1,25 @@
+Atom: {
+	tag: "Atom"
+	value: String
+}
+Not: {
+	tag: "Not"
+	value: <expr>
+}
+And: {
+	tag: "And"
+	value: [<expr>..]
+}
+Or: {
+	tag: "Or"
+	value: [<expr>..]
+}
+KeyMap If: {
+	tag: "If"
+	value: {
+		antecedent: <expr>
+		consequent: <expr>
+	}
+}
+
+
