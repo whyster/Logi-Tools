@@ -14,9 +14,9 @@ extra-source-files:
 
 library
   exposed-modules:
-      Lib
-      Sequent
-      Server
+      LogicServer.Lib
+      LogicServer.Sequent
+      LogicServer.Server
   other-modules:
       Paths_LogicServer
   hs-source-dirs:

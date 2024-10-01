@@ -1,7 +1,7 @@
 module SequentSpec(spec) where
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Sequent
+import LogicServer.Sequent(Expr(..), LogicTree(Leaf), bic, solve)
 
 spec :: Spec
 spec = do

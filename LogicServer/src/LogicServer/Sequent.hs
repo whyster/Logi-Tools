@@ -1,8 +1,17 @@
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE InstanceSigs #-}
-module Sequent (Expr(..), LogicTree(..), Sequent, simplifyTree, solve, bic, explosionExpr) where
+module LogicServer.Sequent
+    ( -- * Logical data types
+      Expr(..) 
+    , LogicTree(..) 
+    , Sequent 
+
+      -- * Solver
+    , solve 
+      -- * Utility Constructors
+    , bic 
+    ) where
 import Test.QuickCheck
 import GHC.Generics
 import Data.Aeson
@@ -43,6 +52,7 @@ data LogicTree = Leaf Sequent
                | Unsatisfiable
                deriving (Eq, Show)
 
+-- | Constructs an `Expr` equivalent to: `Expr` &#x21d4; `Expr`
 bic :: Expr -> Expr -> Expr
 bic a b = And (If a b) (If b a)
 
@@ -50,11 +60,11 @@ instance Arbitrary Expr where
   arbitrary = sized exprs
 
 instance CoArbitrary Expr where
-  coarbitrary (Atom s)   = variant 0 . coarbitrary s
-  coarbitrary (Not e)    = variant 1 . coarbitrary e
-  coarbitrary (And e2 e) = variant 2 . coarbitrary e2 . coarbitrary e
-  coarbitrary (Or e2 e)  = variant 3 . coarbitrary e2 . coarbitrary e
-  coarbitrary (If e2 e)  = variant 4 . coarbitrary e2 . coarbitrary e
+  coarbitrary (Atom s)   = variant (0 :: Integer) . coarbitrary s
+  coarbitrary (Not e)    = variant (1 :: Integer) . coarbitrary e
+  coarbitrary (And e2 e) = variant (2 :: Integer) . coarbitrary e2 . coarbitrary e
+  coarbitrary (Or e2 e)  = variant (3 :: Integer) . coarbitrary e2 . coarbitrary e
+  coarbitrary (If e2 e)  = variant (4 :: Integer) . coarbitrary e2 . coarbitrary e
 
 
 
@@ -101,15 +111,14 @@ isUnsatisfiable :: Sequent -> Bool
 isUnsatisfiable (left, right) = all (`notElem` right) left
 
 
+-- | Take a tree and apply one round of simplification on the whole tree
 simplifyTree :: LogicTree -> LogicTree
 simplifyTree Axiom         = Axiom
 simplifyTree Unsatisfiable = Unsatisfiable
-
 simplifyTree (Leaf sequent) = case simplifySequent sequent of
   (Leaf sequent')
     | isAtomic sequent' && isUnsatisfiable sequent' -> Unsatisfiable
   rest -> rest
-
 simplifyTree (Branch left right) = case (leftS, rightS) of
     (Axiom, Axiom)     -> Axiom
     (Unsatisfiable, _) -> Unsatisfiable
@@ -118,7 +127,9 @@ simplifyTree (Branch left right) = case (leftS, rightS) of
   where leftS = simplifyTree left
         rightS = simplifyTree right
 
-
+{- | Reduce the `LogicTree` until it is determined that the tree is either
+  provable returning `True` or unsatisfiable returning `False`
+-}
 solve :: LogicTree -> Bool
 solve tree = case until terminates simplifyTree tree of
     Axiom -> True
@@ -127,8 +138,3 @@ solve tree = case until terminates simplifyTree tree of
   where terminates = \case Axiom -> True
                            Unsatisfiable -> True
                            _ -> False
-
-explosionExpr = If (And (Atom "phi") (Not $ Atom "phi")) (Atom "zeta")
-
-
-

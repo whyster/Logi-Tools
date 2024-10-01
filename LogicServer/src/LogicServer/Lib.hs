@@ -1,4 +1,4 @@
-module Lib
+module LogicServer.Lib
     ( someFunc
     ) where
 

@@ -1,8 +1,9 @@
 {-# LANGUAGE TypeOperators #-}
+
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Server(app) where
+module LogicServer.Server(app) where
 import Servant.API
 import GHC.Generics
 import Data.Aeson

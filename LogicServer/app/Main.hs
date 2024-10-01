@@ -1,5 +1,5 @@
 module Main (main) where
-import Server(app)
+import LogicServer.Server(app)
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.RequestLogger
 
