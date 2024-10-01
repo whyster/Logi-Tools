@@ -58,6 +58,7 @@ test-suite LogicServer-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      SequentSpec
       Paths_LogicServer
   hs-source-dirs:
       test
