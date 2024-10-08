@@ -2,10 +2,24 @@ module SequentSpec(spec) where
 import Test.Hspec
 import Test.Hspec.QuickCheck
 import LogicServer.Sequent(Expr(..), LogicTree(Leaf), bic, solve)
+import Data.Aeson(encode, decode)
 
 spec :: Spec
 spec = do
-  describe "Sequent.solve" $ parallel $ do
+  describe "solve" solveSpec
+  describe "FromJSON/ToJSON" jsonSpec
+
+
+jsonSpec :: Spec
+jsonSpec = parallel $ do
+    prop "decoding an encoded structure returns the same structure" $ do
+      let prop_equivilant_encoding :: Expr -> Maybe Bool
+          prop_equivilant_encoding expr = (== expr) <$> (decode . encode $ expr)
+      prop_equivilant_encoding
+
+
+solveSpec :: Spec
+solveSpec = parallel $ do
     prop "explosion proves all" $ do
       \consequence -> solve (Leaf ([Atom "P", Not $ Atom "P"], [consequence]))
     -- Doing big logic tress cause will take forever 
