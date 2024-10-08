@@ -35,7 +35,7 @@ instance ToJSON Expr where
 
 instance FromJSON Expr where
   parseJSON :: Value -> Parser Expr
-  parseJSON = withObject "Coord" $ \v -> case v !? "tag" of
+  parseJSON = withObject "Expr" $ \v -> case v !? "tag" of
       Just (String "atom") -> Atom <$> (v .: "value")
       Just (String "not")  -> Not  <$> (v .: "value") 
       Just (String "and")  -> (v .: "value") >>= (\(fst : snd : _) -> return (And fst snd))
