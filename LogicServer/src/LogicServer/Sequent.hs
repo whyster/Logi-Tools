@@ -29,20 +29,19 @@ instance ToJSON Expr where
   toJSON :: Expr -> Value
   toJSON (Atom s)   = object [ "tag" .= String "atom", "value" .= s]
   toJSON (Not e)    = object [ "tag" .= String "not", "value" .= toJSON e]
-  toJSON (And xs)   = object [ "tag" .= String "and", "value" .= toJSONList [xs]]
-  toJSON (Or xs)    = object [ "tag" .= String "or", "value" .= toJSONList [xs]]
+  toJSON (And xs)   = object [ "tag" .= String "and", "value" .= toJSONList xs]
+  toJSON (Or xs)    = object [ "tag" .= String "or", "value" .= toJSONList xs]
   toJSON (If e1 e2) = object [ "tag" .= String "if", "value" .= object ["antecedent" .= toJSON e1, "consequent" .= toJSON e2]]
 
--- instance FromJSON Expr where
---   parseJSON :: Value -> Parser Expr
---   parseJSON = withObject "Expr" $ \v -> case v !? "tag" of
---       Just (String "atom") -> Atom <$> (v .: "value")
---       Just (String "not")  -> Not  <$> (v .: "value")
---       -- Just (String "and")  -> (v .: "value") >>= (\(fst : snd : _) -> return (And fst snd))
---       Just (String "and")  -> And <$> (v .: "value")
---       Just (String "or")   -> (v .: "value") >>= (\(fst : snd : _) -> return (Or fst snd))
---       Just (String "if")   -> (v .: "value") >>= (\o -> If <$> (o .: "antecedent") <*> (o .: "consequent"))
---       _ -> fail "Unexpected tag value"
+instance FromJSON Expr where
+  parseJSON :: Value -> Parser Expr
+  parseJSON = withObject "Expr" $ \v -> case v !? "tag" of
+      Just (String "atom") -> Atom <$> (v .: "value")
+      Just (String "not")  -> Not  <$> (v .: "value")
+      Just (String "and")  -> And <$> (v .: "value")
+      Just (String "or")  -> Or <$> (v .: "value")
+      Just (String "if")   -> (v .: "value") >>= (\o -> If <$> (o .: "antecedent") <*> (o .: "consequent"))
+      _ -> fail "Unexpected tag value"
 
 
 type Sequent = ([Expr], [Expr])
