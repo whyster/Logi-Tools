@@ -3,68 +3,69 @@
 {-# LANGUAGE InstanceSigs #-}
 module LogicServer.Sequent
     ( -- * Logical data types
-      Expr(..) 
-    , LogicTree(..) 
-    , Sequent 
+      Expr(..)
+    , LogicTree(..)
+    , Sequent
 
       -- * Solver
-    , solve 
+    , solve
       -- * Utility Constructors
-    , bic 
+    , bic
     ) where
 import Test.QuickCheck
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
-import Data.Aeson.KeyMap hiding (foldr)
+import Data.Aeson.KeyMap hiding (map, foldr)
 
 data Expr = Atom String
           | Not Expr
-          | And Expr Expr
-          | Or Expr Expr
+          | And [Expr]
+          | Or [Expr]
           | If Expr Expr
           deriving (Eq, Show)
 
 instance ToJSON Expr where
   toJSON :: Expr -> Value
-  toJSON (Atom s)    = object [ "tag" .= String "atom", "value" .= s]
-  toJSON (Not e)     = object [ "tag" .= String "not", "value" .= toJSON e]
-  toJSON (And e1 e2) = object [ "tag" .= String "and", "value" .= toJSONList [e1, e2]]
-  toJSON (Or e1 e2)  = object [ "tag" .= String "or", "value" .= toJSONList [e1, e2]]
-  toJSON (If e1 e2)  = object [ "tag" .= String "if", "value" .= object ["antecedent" .= toJSON e1, "consequent" .= toJSON e2]]
+  toJSON (Atom s)   = object [ "tag" .= String "atom", "value" .= s]
+  toJSON (Not e)    = object [ "tag" .= String "not", "value" .= toJSON e]
+  toJSON (And xs)   = object [ "tag" .= String "and", "value" .= toJSONList [xs]]
+  toJSON (Or xs)    = object [ "tag" .= String "or", "value" .= toJSONList [xs]]
+  toJSON (If e1 e2) = object [ "tag" .= String "if", "value" .= object ["antecedent" .= toJSON e1, "consequent" .= toJSON e2]]
 
-instance FromJSON Expr where
-  parseJSON :: Value -> Parser Expr
-  parseJSON = withObject "Expr" $ \v -> case v !? "tag" of
-      Just (String "atom") -> Atom <$> (v .: "value")
-      Just (String "not")  -> Not  <$> (v .: "value") 
-      Just (String "and")  -> (v .: "value") >>= (\(fst : snd : _) -> return (And fst snd))
-      Just (String "or")   -> (v .: "value") >>= (\(fst : snd : _) -> return (Or fst snd))
-      Just (String "if")   -> (v .: "value") >>= (\o -> If <$> (o .: "antecedent") <*> (o .: "consequent"))
-      _ -> fail "Unexpected tag value"
+-- instance FromJSON Expr where
+--   parseJSON :: Value -> Parser Expr
+--   parseJSON = withObject "Expr" $ \v -> case v !? "tag" of
+--       Just (String "atom") -> Atom <$> (v .: "value")
+--       Just (String "not")  -> Not  <$> (v .: "value")
+--       -- Just (String "and")  -> (v .: "value") >>= (\(fst : snd : _) -> return (And fst snd))
+--       Just (String "and")  -> And <$> (v .: "value")
+--       Just (String "or")   -> (v .: "value") >>= (\(fst : snd : _) -> return (Or fst snd))
+--       Just (String "if")   -> (v .: "value") >>= (\o -> If <$> (o .: "antecedent") <*> (o .: "consequent"))
+--       _ -> fail "Unexpected tag value"
 
 
 type Sequent = ([Expr], [Expr])
 
 data LogicTree = Leaf Sequent
-               | Branch LogicTree LogicTree
+               | Branch [LogicTree]
                | Axiom
                | Unsatisfiable
                deriving (Eq, Show)
 
 -- | Constructs an `Expr` equivalent to: `Expr` &#x21d4; `Expr`
 bic :: Expr -> Expr -> Expr
-bic a b = And (If a b) (If b a)
+bic a b = And [(If a b), (If b a)]
 
 instance Arbitrary Expr where
   arbitrary = sized exprs
 
-instance CoArbitrary Expr where
-  coarbitrary (Atom s)   = variant (0 :: Integer) . coarbitrary s
-  coarbitrary (Not e)    = variant (1 :: Integer) . coarbitrary e
-  coarbitrary (And e2 e) = variant (2 :: Integer) . coarbitrary e2 . coarbitrary e
-  coarbitrary (Or e2 e)  = variant (3 :: Integer) . coarbitrary e2 . coarbitrary e
-  coarbitrary (If e2 e)  = variant (4 :: Integer) . coarbitrary e2 . coarbitrary e
+-- instance CoArbitrary Expr where
+  -- coarbitrary (Atom s)   = variant (0 :: Integer) . coarbitrary s
+  -- coarbitrary (Not e)    = variant (1 :: Integer) . coarbitrary e
+  -- coarbitrary (And e2 e) = variant (2 :: Integer) . coarbitrary e2 . coarbitrary e
+  -- coarbitrary (Or e2 e)  = variant (3 :: Integer) . coarbitrary e2 . coarbitrary e
+  -- coarbitrary (If e2 e)  = variant (4 :: Integer) . coarbitrary e2 . coarbitrary e
 
 
 
@@ -72,8 +73,8 @@ exprs :: Int -> Gen Expr
 exprs n
     | n <= 0 = fmap Atom arbitrary
     | otherwise = oneof [ Not <$> subExpr
-                        , And <$> subExpr <*> subExpr
-                        , Or <$> subExpr <*> subExpr
+                        , And <$> listOf subExpr
+                        , Or <$> listOf subExpr
                         , If <$> subExpr <*> subExpr
                         ]
   where subExpr = exprs $ n `div` 2
@@ -82,17 +83,17 @@ exprs n
 simplifySequent :: Sequent -> LogicTree
 simplifySequent (left, right) =
   case left of
-    ((And a b) : xs) -> Leaf (a : b : xs ,right)
-    ((Or a b) : xs)  -> Branch (Leaf (a : xs, right)) (Leaf (b : xs, right))
-    ((If a b) : xs)  -> Branch (Leaf (xs, a : right)) (Leaf (b : xs, right))
+    ((And es) : xs) -> Leaf (es ++ xs ,right)
+    ((Or es) : xs)  -> Branch [Leaf (e : xs, right) | e <- es]
+    ((If a b) : xs)  -> Branch [Leaf (xs, a : right), Leaf (b : xs, right)]
     ((Not a) : xs)   -> Leaf (xs, a : right)
     []               -> processRight [] right
     (x : xs)         -> if x `elem` right then Axiom else processRight (xs ++ [x]) right
   where processRight :: [Expr] -> [Expr] -> LogicTree
         processRight left' right' = case right' of
           []               -> Leaf (left', [])
-          ((And a b) : xs) -> Branch (Leaf (left', a : xs)) (Leaf (left', b : xs))
-          ((Or a b) : xs)  -> Leaf (left', a : b : xs)
+          ((And es) : xs) -> Branch [Leaf (left', e : xs) | e <- es] -- (Leaf (left', a : xs)) (Leaf (left', b : xs))
+          ((Or es) : xs)  -> Leaf (left', es ++ xs)
           ((If a b) : xs)  -> Leaf (a : left', b : xs)
           ((Not a) : xs)   -> Leaf (a : left', xs)
           (x : xs)         -> Leaf (left', xs ++ [x])
@@ -119,13 +120,15 @@ simplifyTree (Leaf sequent) = case simplifySequent sequent of
   (Leaf sequent')
     | isAtomic sequent' && isUnsatisfiable sequent' -> Unsatisfiable
   rest -> rest
-simplifyTree (Branch left right) = case (leftS, rightS) of
-    (Axiom, Axiom)     -> Axiom
-    (Unsatisfiable, _) -> Unsatisfiable
-    (_, Unsatisfiable) -> Unsatisfiable
-    (a, b)             -> Branch a b
-  where leftS = simplifyTree left
-        rightS = simplifyTree right
+simplifyTree (Branch branches) -- = case (leftS, rightS) of
+    | any matchUnsatisfied branches' = Unsatisfiable
+    | all matchAxiom branches' = Axiom
+    | otherwise = Branch branches'
+  where matchUnsatisfied Unsatisfiable = True
+        matchUnsatisfied _ = False
+        matchAxiom Axiom = True
+        matchAxiom _ = False
+        branches' = map simplifyTree branches
 
 {- | Reduce the `LogicTree` until it is determined that the tree is either
   provable returning `True` or unsatisfiable returning `False`
