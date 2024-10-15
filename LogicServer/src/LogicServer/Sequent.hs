@@ -59,12 +59,12 @@ bic a b = And [(If a b), (If b a)]
 instance Arbitrary Expr where
   arbitrary = sized exprs
 
--- instance CoArbitrary Expr where
-  -- coarbitrary (Atom s)   = variant (0 :: Integer) . coarbitrary s
-  -- coarbitrary (Not e)    = variant (1 :: Integer) . coarbitrary e
-  -- coarbitrary (And e2 e) = variant (2 :: Integer) . coarbitrary e2 . coarbitrary e
-  -- coarbitrary (Or e2 e)  = variant (3 :: Integer) . coarbitrary e2 . coarbitrary e
-  -- coarbitrary (If e2 e)  = variant (4 :: Integer) . coarbitrary e2 . coarbitrary e
+instance CoArbitrary Expr where
+  coarbitrary (Atom s)   = variant (0 :: Integer) . coarbitrary s
+  coarbitrary (Not e)    = variant (1 :: Integer) . coarbitrary e
+  coarbitrary (And ex)   = variant (2 :: Integer) . coarbitrary ex
+  coarbitrary (Or ex)    = variant (3 :: Integer) . coarbitrary ex 
+  coarbitrary (If e2 e)  = variant (4 :: Integer) . coarbitrary e2 . coarbitrary e
 
 
 -- | Generates well-formed expressions
