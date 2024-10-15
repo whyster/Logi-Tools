@@ -38,8 +38,8 @@ instance FromJSON Expr where
   parseJSON = withObject "Expr" $ \v -> case v !? "tag" of
       Just (String "atom") -> Atom <$> (v .: "value")
       Just (String "not")  -> Not  <$> (v .: "value")
-      Just (String "and")  -> And <$> (v .: "value")
-      Just (String "or")  -> Or <$> (v .: "value")
+      Just (String "and")  -> And  <$> (v .: "value")
+      Just (String "or")   -> Or   <$> (v .: "value")
       Just (String "if")   -> (v .: "value") >>= (\o -> If <$> (o .: "antecedent") <*> (o .: "consequent"))
       _ -> fail "Unexpected tag value"
 
@@ -67,23 +67,26 @@ instance Arbitrary Expr where
   -- coarbitrary (If e2 e)  = variant (4 :: Integer) . coarbitrary e2 . coarbitrary e
 
 
-
+-- | Generates well-formed expressions
 exprs :: Int -> Gen Expr
 exprs n
-    | n <= 0 = fmap Atom arbitrary
+    | n <= 0 = Atom <$> arbitrary
     | otherwise = oneof [ Not <$> subExpr
-                        , And <$> listOf subExpr
-                        , Or <$> listOf subExpr
-                        , If <$> subExpr <*> subExpr
+                        , And <$> scale f (listOf1 subExpr)
+                        , Or  <$> scale f (listOf1 subExpr)
+                        , If  <$> subExpr <*> subExpr
                         ]
   where subExpr = exprs $ n `div` 2
+        f n = n `div` 3
+
 
 
 simplifySequent :: Sequent -> LogicTree
 simplifySequent (left, right) =
   case left of
-    ((And es) : xs) -> Leaf (es ++ xs ,right)
-    ((Or es) : xs)  -> Branch [Leaf (e : xs, right) | e <- es]
+    ((And es) : xs)  -> Leaf (es ++ xs ,right)
+    ((Or []) : xs)   -> Leaf (xs, right)
+    ((Or es) : xs)   -> Branch [Leaf (e : xs, right) | e <- es]
     ((If a b) : xs)  -> Branch [Leaf (xs, a : right), Leaf (b : xs, right)]
     ((Not a) : xs)   -> Leaf (xs, a : right)
     []               -> processRight [] right
@@ -91,8 +94,9 @@ simplifySequent (left, right) =
   where processRight :: [Expr] -> [Expr] -> LogicTree
         processRight left' right' = case right' of
           []               -> Leaf (left', [])
-          ((And es) : xs) -> Branch [Leaf (left', e : xs) | e <- es] -- (Leaf (left', a : xs)) (Leaf (left', b : xs))
-          ((Or es) : xs)  -> Leaf (left', es ++ xs)
+          ((And []) : xs)  -> Leaf (left', xs)
+          ((And es) : xs)  -> Branch [Leaf (left', e : xs) | e <- es] -- (Leaf (left', a : xs)) (Leaf (left', b : xs))
+          ((Or es) : xs)   -> Leaf (left', es ++ xs)
           ((If a b) : xs)  -> Leaf (a : left', b : xs)
           ((Not a) : xs)   -> Leaf (a : left', xs)
           (x : xs)         -> Leaf (left', xs ++ [x])
@@ -119,6 +123,7 @@ simplifyTree (Leaf sequent) = case simplifySequent sequent of
   (Leaf sequent')
     | isAtomic sequent' && isUnsatisfiable sequent' -> Unsatisfiable
   rest -> rest
+simplifyTree (Branch []) = undefined
 simplifyTree (Branch branches) -- = case (leftS, rightS) of
     | any matchUnsatisfied branches' = Unsatisfiable
     | all matchAxiom branches' = Axiom
