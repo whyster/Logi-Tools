@@ -13,7 +13,7 @@ spec = do
 
 jsonSpec :: Spec
 jsonSpec = parallel $ do
-    modifyMaxSize (const 16) $ prop "decoding an encoded structure returns the same structure" $ do
+    prop "decoding an encoded structure returns the same structure" $ do
       let prop_equivilant_encoding :: Expr -> Maybe Bool
           prop_equivilant_encoding expr = (== expr) <$> (decode . encode $ expr)
       fromJust . prop_equivilant_encoding
@@ -21,12 +21,12 @@ jsonSpec = parallel $ do
 
 solveSpec :: Spec
 solveSpec = parallel $ do
-    modifyMaxSize (const 8) $ prop "explosion proves all" $ do
+    modifyMaxSize (const 32) $ prop "explosion proves all" $ do
       \consequence -> solve (Leaf ([Atom "P", Not $ Atom "P"], [consequence]))
     -- Doing big logic tress cause will take forever 
-    modifyMaxSize (const 8) $ prop "proves a sequent is equivilant to implication" $ do
+    modifyMaxSize (const 16) $ prop "proves a sequent is equivilant to implication" $ do
       \expA expB -> solve (Leaf ([], [If expA expB])) == solve (Leaf ([expA], [expB]))
-    modifyMaxSize (const 8) $ prop "always terminates" $ do
+    modifyMaxSize (const 16) $ prop "always terminates" $ do
       \expA expB -> solve (Leaf ([expA], [expB])) `shouldSatisfy` (\x -> x || not x)
     it "proves falsum are unsatisfiable" $ do
       solve (Leaf ([], [Atom "P"])) `shouldBe` False
@@ -41,3 +41,5 @@ solveSpec = parallel $ do
         solve (Leaf ([], [If (Atom "A") (Atom "B") `bic` If (Not $ Atom "B") (Not $ Atom "A")]))
       it "proves reducto ad absurdim" $ do
         solve (Leaf ([And [(If (Not $ Atom "A") (Atom "B")), (If (Not $ Atom "A") (Not $ Atom "B"))] ], [Atom "A"]))
+      it "proves negation of tautaulogy is unsatisfiable" $ do
+        solve (Leaf ([Not $ And [(If (Not $ Atom "A") (Atom "B")), (If (Not $ Atom "A") (Not $ Atom "B"))] ], [Atom "A"])) `shouldBe` False
