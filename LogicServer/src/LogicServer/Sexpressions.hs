@@ -1,4 +1,4 @@
-module LogicServer.Sexpressions(m_parens, m_ident, sexpParser, Sexpr(..)) where
+module LogicServer.Sexpressions(Sexpr(..), m_parens, m_ident, sexpParser) where
 
 import Text.Parsec
 import Text.Parsec.Token
@@ -19,7 +19,7 @@ TokenParser { parens        = m_parens
 
 data Sexpr = Atom String
            | Func String [Sexpr]
-          deriving (Show)
+          deriving (Show, Eq)
 
 funcParser :: Parsec String u Sexpr
 funcParser = m_parens $ do
