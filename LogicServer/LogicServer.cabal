@@ -17,6 +17,7 @@ library
       LogicServer.Lib
       LogicServer.Sequent
       LogicServer.Server
+      LogicServer.Sexpressions
   other-modules:
       Paths_LogicServer
   hs-source-dirs:
@@ -28,6 +29,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , hspec
+    , parsec
     , servant
     , servant-server
     , wai-extra
@@ -48,6 +50,7 @@ executable LogicServer-exe
     , base >=4.7 && <5
     , bytestring
     , hspec
+    , parsec
     , servant
     , servant-server
     , wai-extra
@@ -70,6 +73,7 @@ test-suite LogicServer-test
     , base >=4.7 && <5
     , bytestring
     , hspec
+    , parsec
     , servant
     , servant-server
     , wai-extra
