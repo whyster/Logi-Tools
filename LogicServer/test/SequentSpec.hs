@@ -14,9 +14,9 @@ spec = do
 jsonSpec :: Spec
 jsonSpec = parallel $ do
     prop "decoding an encoded structure returns the same structure" $ do
-      let prop_equivilant_encoding :: Expr -> Maybe Bool
-          prop_equivilant_encoding expr = (== expr) <$> (decode . encode $ expr)
-      fromJust . prop_equivilant_encoding
+      let propEquivilantEncoding :: Expr -> Maybe Bool
+          propEquivilantEncoding expr = (== expr) <$> (decode . encode $ expr)
+      fromJust . propEquivilantEncoding 
 
 
 solveSpec :: Spec
@@ -26,7 +26,7 @@ solveSpec = parallel $ do
     -- Doing big logic tress cause will take forever 
     modifyMaxSize (const 16) $ prop "proves a sequent is equivilant to implication" $ do
       \expA expB -> solve (Leaf ([], [If expA expB])) == solve (Leaf ([expA], [expB]))
-    modifyMaxSize (const 16) $ prop "always terminates" $ do
+    modifyMaxSize (const 32) $ prop "always terminates" $ do
       \expA expB -> solve (Leaf ([expA], [expB])) `shouldSatisfy` (\x -> x || not x)
     it "proves falsum are unsatisfiable" $ do
       solve (Leaf ([], [Atom "P"])) `shouldBe` False
