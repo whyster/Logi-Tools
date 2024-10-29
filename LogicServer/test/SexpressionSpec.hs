@@ -11,11 +11,6 @@ spec = describe "sexpParser" $ do
     forM_ ["example", "EXAMPLE", "\\phi", "\"quoted atom\""] $ \input ->
       it ("Parse \"" ++ input ++ "\"") $ do
         fromJust (parseSexpr input) `shouldBe` Atom (stripQuotes input)
-  -- it "Succeeds" $ do
-  --   True
-  -- it "Parses atoms" $ do
-  --   forM_ $
-    -- fromJust (parseSexpr input) `shouldBe` Atom input
 
 stripQuotes :: String -> String
 stripQuotes = filter (/= '"')
