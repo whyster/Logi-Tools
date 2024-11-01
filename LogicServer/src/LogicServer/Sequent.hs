@@ -11,6 +11,7 @@ module LogicServer.Sequent
     , solve
       -- * Utility Constructors
     , bic
+    , therefore
     ) where
 import Test.QuickCheck
 import GHC.Generics
@@ -145,3 +146,6 @@ solve tree = case until terminates simplifyTree tree of
   where terminates = \case Axiom -> True
                            Unsatisfiable -> True
                            _ -> False
+
+therefore :: Expr -> Expr -> LogicTree                        
+therefore given goal = Leaf ([given], [goal])
