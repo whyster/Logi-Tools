@@ -15,6 +15,7 @@ extra-source-files:
 library
   exposed-modules:
       LogicServer.Lib
+      LogicServer.PropositionalDeduction
       LogicServer.Sequent
       LogicServer.Server
       LogicServer.Sexpressions
