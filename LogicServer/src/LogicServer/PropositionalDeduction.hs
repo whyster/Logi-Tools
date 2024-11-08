@@ -3,18 +3,12 @@ import LogicServer.Sequent(Expr(..))
 
 
 
-data InferenceRule
-  = Assumption
-  | ConjunctionIntroduction
-  | ConjunctionElimination
-  | DisjunctionIntroduction
-  | DisjunctionElimination
-  | InferenceIntroduction
-  | InferenceElimination
-  | NegationIntroduction
-  | NegationElimination
-  | BiconditionalIntroduction
-  | BiconditionalElimination
+
+data InferenceRule = Rule 
+  { given :: [Node]
+  , goal :: Node
+  , name :: String
+  }
 
 
 
@@ -22,5 +16,4 @@ data InferenceRule
 data Node = Node 
   { formula :: Expr
   , assumptions :: [Node]
-  , inferenceRule :: InferenceRule
   }
